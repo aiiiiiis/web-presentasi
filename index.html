@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Praktik Lintas Bidang — AI, Robotik, Bisnis | Kelompok 5</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  :root{
+    --bg: #070d16;
+    --bg-soft: #0c1626;
+    --card: #101d30;
+    --card-border: #1c2e46;
+    --cyan: #35e8d8;
+    --blue: #4f8ff7;
+    --ink: #eaf2fb;
+    --ink-dim: #8fa3bd;
+    --ink-dimmer: #5c728c;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family:"Inter", sans-serif;
+    line-height:1.55;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,.display{font-family:"Space Grotesk", sans-serif;}
+  .mono{font-family:"JetBrains Mono", monospace;}
+  a{color:inherit; text-decoration:none;}
+
+  /* background grid texture */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(53,232,216,0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(53,232,216,0.045) 1px, transparent 1px);
+    background-size: 42px 42px;
+    pointer-events:none;
+    z-index:0;
+    mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, black 10%, transparent 75%);
+  }
+
+  /* ===== nav ===== */
+  header{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 18px clamp(20px,5vw,64px);
+    background: rgba(7,13,22,0.72);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(53,232,216,0.12);
+  }
+  .brand{display:flex; align-items:center; gap:10px; font-weight:700; font-size:15px; letter-spacing:0.02em;}
+  .brand .dot{width:9px; height:9px; border-radius:50%; background:var(--cyan); box-shadow:0 0 12px var(--cyan);}
+  nav.links{display:flex; gap:26px; font-size:13.5px; color:var(--ink-dim);}
+  nav.links a{transition:color .2s;}
+  nav.links a:hover{color:var(--cyan);}
+  .menu-toggle{display:none; background:none; border:none; color:var(--ink); font-size:20px; cursor:pointer;}
+  @media (max-width:880px){
+    nav.links{display:none;}
+    .menu-toggle{display:block;}
+  }
+
+  section{position:relative; z-index:1;}
+
+  /* ===== hero ===== */
+  .hero{
+    min-height:100svh;
+    display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
+    padding: 140px clamp(20px,7vw,90px) 80px;
+    position:relative;
+  }
+  .hero-tag{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:"JetBrains Mono", monospace;
+    font-size:12.5px; letter-spacing:0.08em; color:var(--cyan);
+    border:1px solid rgba(53,232,216,0.35);
+    padding:6px 14px; border-radius:999px;
+    margin-bottom:28px;
+    background:rgba(53,232,216,0.06);
+  }
+  .hero h1{
+    font-size: clamp(2.6rem, 6.4vw, 5.4rem);
+    font-weight:700; line-height:1.03; letter-spacing:-0.02em;
+    max-width:1000px;
+  }
+  .hero h1 .grad{
+    background:linear-gradient(100deg, var(--cyan), var(--blue));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .hero p.lede{
+    margin-top:26px; max-width:640px; font-size:clamp(1rem,1.6vw,1.2rem); color:var(--ink-dim);
+  }
+  .hero-icons{
+    display:flex; gap:16px; margin-top:56px; flex-wrap:wrap;
+  }
+  .hero-icons .icon-chip{
+    width:58px; height:58px; border-radius:16px;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--card); border:1px solid var(--card-border);
+    font-size:22px; color:var(--cyan);
+    animation: floaty 5s ease-in-out infinite;
+  }
+  .hero-icons .icon-chip:nth-child(2){animation-delay:.3s;}
+  .hero-icons .icon-chip:nth-child(3){animation-delay:.6s;}
+  .hero-icons .icon-chip:nth-child(4){animation-delay:.9s;}
+  .hero-icons .icon-chip:nth-child(5){animation-delay:1.2s;}
+  @keyframes floaty{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-8px);}
+  }
+  .scroll-hint{
+    position:absolute; bottom:36px; left:clamp(20px,7vw,90px);
+    display:flex; align-items:center; gap:10px;
+    color:var(--ink-dimmer); font-size:12px; font-family:"JetBrains Mono", monospace;
+  }
+  .scroll-hint .line{width:36px; height:1px; background:var(--ink-dimmer);}
+
+  /* orbiting network canvas backdrop */
+  .net-bg{
+    position:absolute; top:0; right:0; width:min(52vw,720px); height:100%;
+    opacity:0.55; pointer-events:none;
+  }
+
+  /* ===== section shell ===== */
+  .wrap{
+    max-width:1180px; margin:0 auto; padding: 120px clamp(20px,6vw,64px);
+  }
+  .eyebrow{
+    font-family:"JetBrains Mono", monospace; font-size:12.5px; letter-spacing:0.12em;
+    color:var(--cyan); text-transform:uppercase; margin-bottom:14px; display:block;
+  }
+  .sec-title{
+    font-size:clamp(1.8rem, 3.4vw, 2.6rem); font-weight:700; letter-spacing:-0.01em;
+    margin-bottom:20px;
+  }
+  .sec-lede{color:var(--ink-dim); font-size:1.05rem; max-width:760px; margin-bottom:52px;}
+
+  /* number badge (meaningful ordering across domains, mirrors deck's own 01-13 numbering) */
+  .num{
+    font-family:"JetBrains Mono", monospace; font-size:13px; color:var(--ink-dimmer);
+    letter-spacing:0.05em;
+  }
+
+  /* pill row for pengertian */
+  .pill-row{display:flex; flex-wrap:wrap; gap:14px; margin-top:8px;}
+  .pill{
+    display:flex; align-items:center; gap:10px;
+    background:var(--card); border:1px solid var(--card-border);
+    padding:14px 20px; border-radius:14px; font-weight:600; font-size:14.5px;
+  }
+  .pill i{color:var(--cyan); font-size:16px;}
+
+  /* domain intro block (icon + def) */
+  .domain-head{
+    display:flex; gap:24px; align-items:flex-start; margin-bottom:44px; flex-wrap:wrap;
+  }
+  .domain-icon{
+    width:72px; height:72px; min-width:72px; border-radius:20px;
+    display:flex; align-items:center; justify-content:center; font-size:30px;
+    background:linear-gradient(145deg, rgba(53,232,216,0.16), rgba(79,143,247,0.10));
+    border:1px solid rgba(53,232,216,0.25); color:var(--cyan);
+  }
+  .domain-def{color:var(--ink-dim); font-size:1.02rem; max-width:640px; padding-top:6px;}
+  .domain-def b{color:var(--ink); font-weight:600;}
+
+  /* card grid for examples */
+  .grid{
+    display:grid; grid-template-columns:repeat(4, 1fr); gap:18px;
+  }
+  @media (max-width:980px){.grid{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:560px){.grid{grid-template-columns:1fr;}}
+  .card{
+    background:var(--card); border:1px solid var(--card-border); border-radius:16px;
+    padding:26px 22px; transition:transform .25s ease, border-color .25s ease, background .25s ease;
+  }
+  .card:hover{transform:translateY(-4px); border-color:rgba(53,232,216,0.4); background:#132339;}
+  .card .card-icon{
+    width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+    background:rgba(53,232,216,0.1); color:var(--cyan); font-size:19px; margin-bottom:18px;
+  }
+  .card h3{font-size:1.02rem; font-weight:600; margin-bottom:8px;}
+  .card p{color:var(--ink-dim); font-size:.92rem;}
+
+  .section-alt{background:var(--bg-soft); border-top:1px solid var(--card-border); border-bottom:1px solid var(--card-border);}
+
+  /* benefit strip (business) */
+  .benefit-strip{
+    display:flex; flex-wrap:wrap; gap:14px; margin-top:40px;
+  }
+  .benefit-strip .b-item{
+    flex:1 1 200px;
+    display:flex; align-items:center; gap:12px;
+    background:rgba(79,143,247,0.08); border:1px solid rgba(79,143,247,0.22);
+    padding:16px 18px; border-radius:14px; font-size:.9rem; font-weight:600;
+  }
+  .benefit-strip .b-item i{color:var(--blue); font-size:17px;}
+
+  /* keuntungan / tantangan list */
+  .list-grid{
+    display:grid; grid-template-columns:repeat(5,1fr); gap:16px;
+  }
+  @media (max-width:980px){.list-grid{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:560px){.list-grid{grid-template-columns:1fr;}}
+  .list-item{
+    background:var(--card); border:1px solid var(--card-border); border-radius:16px; padding:24px 18px;
+    text-align:left;
+  }
+  .list-item i{font-size:22px; color:var(--cyan); margin-bottom:14px; display:block;}
+  .list-item h4{font-size:.98rem; font-weight:600; margin-bottom:8px;}
+  .list-item p{font-size:.85rem; color:var(--ink-dim);}
+
+  .challenge .list-item i{color:#f2b155;}
+  .challenge .list-item{border-color:rgba(242,177,85,0.2);}
+
+  /* kesimpulan */
+  .conclude-box{
+    display:grid; grid-template-columns:1.1fr 0.9fr; gap:48px; align-items:center;
+  }
+  @media (max-width:900px){.conclude-box{grid-template-columns:1fr;}}
+  .conclude-box p{color:var(--ink-dim); font-size:1.05rem; margin-bottom:18px;}
+  .tag-cloud{display:flex; flex-wrap:wrap; gap:12px;}
+  .tag{
+    display:flex; align-items:center; gap:9px;
+    padding:12px 18px; border-radius:12px; font-weight:600; font-size:.92rem;
+    background:var(--card); border:1px solid var(--card-border);
+  }
+  .tag i{color:var(--cyan);}
+
+  /* sources / footer */
+  .sources ol{list-style:none; display:flex; flex-direction:column; gap:16px; margin-top:8px;}
+  .sources li{
+    display:flex; gap:16px; align-items:flex-start;
+    background:var(--card); border:1px solid var(--card-border); border-radius:14px; padding:18px 20px;
+    color:var(--ink-dim); font-size:.92rem;
+  }
+  .sources li i{color:var(--cyan); margin-top:3px;}
+  .sources li b{color:var(--ink); font-weight:600;}
+
+  footer{
+    text-align:center; padding:70px 20px 50px; position:relative; z-index:1;
+  }
+  footer h2{font-size:clamp(2rem,5vw,3.2rem); margin-bottom:16px;}
+  footer p{color:var(--ink-dim); margin-bottom:6px;}
+  .footer-line{color:var(--ink-dimmer); font-size:.8rem; margin-top:34px; font-family:"JetBrains Mono", monospace;}
+
+  /* section reveal animation */
+  .reveal{opacity:0; transform:translateY(24px); transition:opacity .7s ease, transform .7s ease;}
+  .reveal.in{opacity:1; transform:translateY(0);}
+
+  @media (prefers-reduced-motion: reduce){
+    .reveal, .icon-chip{transition:none; animation:none; opacity:1; transform:none;}
+  }
+
+  ::selection{background:rgba(53,232,216,0.3);}
+  a:focus-visible, button:focus-visible{outline:2px solid var(--cyan); outline-offset:3px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand"><span class="dot"></span> KELOMPOK 5</div>
+  <nav class="links">
+    <a href="#pengertian">Pengertian</a>
+    <a href="#domains">Bidang</a>
+    <a href="#keuntungan">Keuntungan</a>
+    <a href="#tantangan">Tantangan</a>
+    <a href="#kesimpulan">Kesimpulan</a>
+    <a href="#sumber">Sumber</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <svg class="net-bg" viewBox="0 0 600 700" xmlns="http://www.w3.org/2000/svg">
+    <g stroke="#35e8d8" stroke-opacity="0.35" stroke-width="1">
+      <line x1="80" y1="90" x2="260" y2="160"/>
+      <line x1="260" y1="160" x2="180" y2="320"/>
+      <line x1="260" y1="160" x2="440" y2="140"/>
+      <line x1="440" y1="140" x2="500" y2="300"/>
+      <line x1="180" y1="320" x2="330" y2="380"/>
+      <line x1="330" y1="380" x2="500" y2="300"/>
+      <line x1="330" y1="380" x2="260" y2="540"/>
+      <line x1="260" y1="540" x2="420" y2="600"/>
+      <line x1="500" y1="300" x2="420" y2="600"/>
+    </g>
+    <g fill="#35e8d8">
+      <circle cx="80" cy="90" r="4"/>
+      <circle cx="260" cy="160" r="5"/>
+      <circle cx="440" cy="140" r="4"/>
+      <circle cx="180" cy="320" r="4"/>
+      <circle cx="500" cy="300" r="5"/>
+      <circle cx="330" cy="380" r="4.5"/>
+      <circle cx="260" cy="540" r="4"/>
+      <circle cx="420" cy="600" r="5"/>
+    </g>
+  </svg>
+
+  <span class="hero-tag"><i class="fa-solid fa-diagram-project"></i> PRAKTIK LINTAS BIDANG</span>
+  <h1>AI, Robotik, <span class="grad">Bisnis</span>, dan Lainnya</h1>
+  <p class="lede">Bagaimana kecerdasan buatan, robotik, dan teknologi digital bekerja bersama menyelesaikan masalah nyata di berbagai bidang kehidupan.</p>
+
+  <div class="hero-icons">
+    <div class="icon-chip"><i class="fa-solid fa-brain"></i></div>
+    <div class="icon-chip"><i class="fa-solid fa-robot"></i></div>
+    <div class="icon-chip"><i class="fa-solid fa-briefcase"></i></div>
+    <div class="icon-chip"><i class="fa-solid fa-graduation-cap"></i></div>
+    <div class="icon-chip"><i class="fa-solid fa-heart-pulse"></i></div>
+  </div>
+
+  <div class="scroll-hint"><span class="line"></span> scroll untuk menjelajah</div>
+</section>
+
+<!-- PENGERTIAN -->
+<section id="pengertian">
+  <div class="wrap reveal">
+    <span class="eyebrow">01 · Pengertian</span>
+    <h2 class="sec-title">Apa itu praktik lintas bidang?</h2>
+    <p class="sec-lede">Praktik lintas bidang adalah penerapan teknologi seperti <b style="color:var(--ink)">Artificial Intelligence (AI)</b>, robotik, Internet of Things (IoT), big data, dan komputasi awan (cloud computing) yang digunakan bersama-sama untuk menyelesaikan berbagai masalah di berbagai bidang kehidupan.</p>
+    <div class="pill-row">
+      <div class="pill"><i class="fa-solid fa-brain"></i> AI</div>
+      <div class="pill"><i class="fa-solid fa-robot"></i> Robotik</div>
+      <div class="pill"><i class="fa-solid fa-network-wired"></i> IoT</div>
+      <div class="pill"><i class="fa-solid fa-database"></i> Big Data</div>
+      <div class="pill"><i class="fa-solid fa-cloud"></i> Cloud Computing</div>
+    </div>
+  </div>
+</section>
+
+<div id="domains"></div>
+
+<!-- 1. AI -->
+<section>
+  <div class="wrap reveal">
+    <span class="eyebrow">02 · Fondasi Teknologi</span>
+    <h2 class="sec-title">1. AI (Artificial Intelligence)</h2>
+    <div class="domain-head">
+      <div class="domain-icon"><i class="fa-solid fa-brain"></i></div>
+      <p class="domain-def">AI adalah teknologi yang membuat komputer atau mesin dapat <b>meniru kemampuan manusia</b> — belajar, berpikir, mengenali gambar, memahami bahasa, dan mengambil keputusan.</p>
+    </div>
+    <span class="eyebrow">Contoh Penerapan</span>
+    <div class="grid" style="margin-top:16px;">
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-comments"></i></div><h3>Chatbot layanan pelanggan</h3><p>Menjawab pertanyaan pelanggan secara otomatis dan responsif.</p></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-language"></i></div><h3>Penerjemah bahasa otomatis</h3><p>Menerjemahkan teks antarbahasa secara instan.</p></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-film"></i></div><h3>Rekomendasi film atau musik</h3><p>Menyarankan konten sesuai kebiasaan pengguna.</p></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-camera"></i></div><h3>Deteksi wajah pada ponsel</h3><p>Mengenali wajah untuk membuka kunci layar.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. Robotik -->
+<section class="section-alt">
+  <div class="wrap reveal">
+    <span class="eyebrow">03 · Fondasi Teknologi</span>
+    <h2 class="sec-title">2. Robotik</h2>
+    <div class="domain-head">
+      <div class="domain-icon"><i class="fa-solid fa-robot"></i></div>
+      <p class="domain-def">Bidang yang mempelajari <b>perancangan, pembuatan, dan penggunaan robot</b> untuk membantu pekerjaan manusia.</p>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-industry"></i></div><h3>Robot di pabrik otomotif</h3><p>Merakit dan mengelas komponen kendaraan dengan presisi tinggi dan konsisten.</p></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-house"></i></div><h3>Robot pembersih rumah</h3><p>Membersihkan lantai secara otomatis tanpa perlu diawasi.</p></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-user-doctor"></i></div><h3>Robot bedah di rumah sakit</h3><p>Membantu dokter melakukan operasi dengan tingkat akurasi yang lebih tinggi.</p></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-box-open"></i></div><h3>Robot pengantar barang</h3><p>Mengantarkan paket atau barang di gudang maupun area publik.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. AI dalam Bisnis -->
+<section>
+  <div class="wrap reveal">
+    <span class="eyebrow">04 · Penerapan di Berbagai Bidang</span>
+    <h2 class="sec-title">3. AI dalam Bisnis</h2>
+    <p class="sec-lede">AI membantu perusahaan meningkatkan efisiensi dan kualitas pelayanan.</p>
+    <div class="grid">
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-chart-bar"></i></div><h3>Analisis data pelanggan</h3><p>Memahami perilaku dan preferensi pelanggan secara mendalam.</p></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-bullseye"></i></div><h3>Prediksi penjualan</h3><p>Memperkirakan tren penjualan untuk perencanaan bisnis.</p></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-comments"></i></div><h3>Chatbot untuk konsumen</h3><p>Melayani pertanyaan pelanggan kapan saja secara otomatis.</p></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-cart-shopping"></i></div><h3>Rekomendasi produk</h3><p>Menyarankan produk yang relevan di toko online.</p></div>
+    </div>
+    <span class="eyebrow" style="margin-top:44px; display:block;">Manfaat</span>
+    <div class="benefit-strip">
+      <div class="b-item"><i class="fa-solid fa-clock"></i> Menghemat waktu</div>
+      <div class="b-item"><i class="fa-solid fa-coins"></i> Mengurangi biaya operasional</div>
+      <div class="b-item"><i class="fa-solid fa-face-smile"></i> Meningkatkan kepuasan pelanggan</div>
+      <div class="b-item"><i class="fa-solid fa-circle-check"></i> Membantu pengambilan keputusan</div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. AI dalam Pendidikan -->
+<section class="section-alt">
+  <div class="wrap reveal">
+    <span class="eyebrow">05 · Penerapan di Berbagai Bidang</span>
+    <h2 class="sec-title">4. AI dalam Pendidikan</h2>
+    <p class="sec-lede">Pembelajaran dipersonalisasi agar sesuai dengan kemampuan tiap siswa.</p>
+    <div class="grid">
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-bullseye"></i></div><h3>Pembelajaran adaptif</h3><p>Disesuaikan dengan kemampuan dan kecepatan belajar siswa.</p></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-circle-check"></i></div><h3>Koreksi tugas otomatis</h3><p>Menilai jawaban siswa secara cepat dan konsisten.</p></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-comments"></i></div><h3>Asisten belajar berbasis AI</h3><p>Membantu siswa memahami materi kapan saja.</p></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-book"></i></div><h3>Penerjemah & rangkuman</h3><p>Menerjemahkan dan meringkas materi pelajaran otomatis.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. AI dalam Kesehatan -->
+<section>
+  <div class="wrap reveal">
+    <span class="eyebrow">06 · Penerapan di Berbagai Bidang</span>
+    <h2 class="sec-title">5. AI dalam Kesehatan</h2>
+    <p class="sec-lede">Mendukung tenaga medis dalam mendiagnosis dan merawat pasien secara akurat.</p>
+    <div class="grid">
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-chart-bar"></i></div><h3>Deteksi penyakit</h3><p>Membantu mengidentifikasi gejala penyakit lebih awal.</p></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-bullseye"></i></div><h3>Analisis hasil pemeriksaan</h3><p>Menganalisis data medis dengan cepat dan akurat.</p></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-user-doctor"></i></div><h3>Robot untuk operasi tertentu</h3><p>Membantu prosedur bedah dengan presisi tinggi.</p></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-heart-pulse"></i></div><h3>Pemantauan kondisi pasien</h3><p>Memantau kondisi vital pasien secara terus-menerus.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. AI dalam Pertanian -->
+<section class="section-alt">
+  <div class="wrap reveal">
+    <span class="eyebrow">07 · Penerapan di Berbagai Bidang</span>
+    <h2 class="sec-title">6. AI dalam Pertanian</h2>
+    <p class="sec-lede">Membantu petani mengelola lahan dan hasil panen secara lebih cerdas.</p>
+    <div class="grid">
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-leaf"></i></div><h3>Memantau kondisi tanaman</h3><p>Mengawasi pertumbuhan tanaman secara real-time.</p></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-bullseye"></i></div><h3>Mendeteksi hama</h3><p>Mengenali serangan hama sejak dini untuk pencegahan.</p></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-droplet"></i></div><h3>Penyiraman otomatis</h3><p>Mengatur irigasi sesuai kebutuhan tanaman.</p></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-chart-bar"></i></div><h3>Memprediksi hasil panen</h3><p>Memperkirakan jumlah panen berdasarkan data lapangan.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. AI dalam Transportasi -->
+<section>
+  <div class="wrap reveal">
+    <span class="eyebrow">08 · Penerapan di Berbagai Bidang</span>
+    <h2 class="sec-title">7. AI dalam Transportasi</h2>
+    <p class="sec-lede">Membuat perjalanan dan pengiriman lebih efisien serta aman.</p>
+    <div class="grid">
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-route"></i></div><h3>Navigasi pintar</h3><p>Menentukan rute tercepat dan paling efisien.</p></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-chart-bar"></i></div><h3>Prediksi kemacetan</h3><p>Memperkirakan kepadatan lalu lintas sebelum terjadi.</p></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-car"></i></div><h3>Kendaraan otonom</h3><p>Mobil yang dapat berjalan tanpa pengemudi manusia.</p></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-box-open"></i></div><h3>Optimasi rute pengiriman</h3><p>Merancang rute pengiriman barang paling efisien.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- KEUNTUNGAN -->
+<section id="keuntungan" class="section-alt">
+  <div class="wrap reveal">
+    <span class="eyebrow">09 · Dampak</span>
+    <h2 class="sec-title">Keuntungan Penerapan AI dan Robotik</h2>
+    <div class="list-grid">
+      <div class="list-item"><i class="fa-solid fa-bolt"></i><h4>Meningkatkan efisiensi kerja</h4><p>Proses kerja berjalan lebih cepat dan optimal.</p></div>
+      <div class="list-item"><i class="fa-solid fa-circle-check"></i><h4>Mengurangi kesalahan manusia</h4><p>Meminimalkan human error dalam setiap proses.</p></div>
+      <div class="list-item"><i class="fa-solid fa-clock"></i><h4>Mempercepat proses produksi</h4><p>Produksi berjalan lebih cepat dan konsisten.</p></div>
+      <div class="list-item"><i class="fa-solid fa-face-smile"></i><h4>Meningkatkan kualitas layanan</h4><p>Pelayanan menjadi lebih responsif dan memuaskan.</p></div>
+      <div class="list-item"><i class="fa-solid fa-shield-halved"></i><h4>Membantu pekerjaan berbahaya</h4><p>Menggantikan manusia pada tugas berisiko tinggi.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- TANTANGAN -->
+<section id="tantangan">
+  <div class="wrap reveal">
+    <span class="eyebrow">10 · Dampak</span>
+    <h2 class="sec-title">Tantangan</h2>
+    <div class="list-grid challenge">
+      <div class="list-item"><i class="fa-solid fa-triangle-exclamation"></i><h4>Biaya pengembangan tinggi</h4><p>Investasi teknologi AI dan robotik memerlukan dana besar.</p></div>
+      <div class="list-item"><i class="fa-solid fa-gears"></i><h4>Kebutuhan keterampilan digital</h4><p>Tenaga kerja perlu dibekali kemampuan digital yang memadai.</p></div>
+      <div class="list-item"><i class="fa-solid fa-shield-halved"></i><h4>Risiko penyalahgunaan data</h4><p>Data pengguna rentan disalahgunakan tanpa pengamanan yang baik.</p></div>
+      <div class="list-item"><i class="fa-solid fa-briefcase"></i><h4>Pekerjaan tergantikan otomasi</h4><p>Sejumlah pekerjaan manual berisiko digantikan mesin.</p></div>
+      <div class="list-item"><i class="fa-solid fa-brain"></i><h4>Isu etika dan keamanan AI</h4><p>Penggunaan AI menuntut pertimbangan etika yang matang.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- KESIMPULAN -->
+<section id="kesimpulan" class="section-alt">
+  <div class="wrap reveal">
+    <span class="eyebrow">11 · Penutup</span>
+    <h2 class="sec-title">Kesimpulan</h2>
+    <div class="conclude-box">
+      <div>
+        <p>AI, robotik, dan teknologi digital telah diterapkan di berbagai bidang seperti bisnis, pendidikan, kesehatan, pertanian, dan transportasi. Penggunaan teknologi ini dapat meningkatkan efisiensi, produktivitas, dan kualitas layanan.</p>
+        <p>Namun, penerapannya juga harus memperhatikan keamanan, etika, dan kesiapan sumber daya manusia.</p>
+      </div>
+      <div class="tag-cloud">
+        <div class="tag"><i class="fa-solid fa-bolt"></i> Efisiensi</div>
+        <div class="tag"><i class="fa-solid fa-chart-bar"></i> Produktivitas</div>
+        <div class="tag"><i class="fa-solid fa-face-smile"></i> Kualitas Layanan</div>
+        <div class="tag"><i class="fa-solid fa-shield-halved"></i> Etika & Keamanan</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SUMBER -->
+<section id="sumber">
+  <div class="wrap reveal sources">
+    <span class="eyebrow">12 · Referensi</span>
+    <h2 class="sec-title">Sumber</h2>
+    <ol>
+      <li><i class="fa-solid fa-book"></i> <span><b>UNESCO.</b> (2021). Recommendation on the Ethics of Artificial Intelligence.</span></li>
+      <li><i class="fa-solid fa-book"></i> <span><b>World Economic Forum.</b> (2023). The Future of Jobs Report.</span></li>
+      <li><i class="fa-solid fa-book"></i> <span><b>Kementerian Komunikasi dan Digital Republik Indonesia.</b> Materi Literasi Digital dan Artificial Intelligence.</span></li>
+    </ol>
+  </div>
+</section>
+
+<footer>
+  <h2>Terima Kasih</h2>
+  <p>Kelompok 5</p>
+  <p>Praktik Lintas Bidang — AI, Robotik, Bisnis, dan Lainnya</p>
+  <div class="footer-line">KELOMPOK-5 // AI · ROBOTIK · BISNIS · PENDIDIKAN · KESEHATAN · PERTANIAN · TRANSPORTASI</div>
+</footer>
+
+<script>
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, {threshold:0.12});
+  revealEls.forEach(el=>io.observe(el));
+</script>
+
+</body>
+</html>
